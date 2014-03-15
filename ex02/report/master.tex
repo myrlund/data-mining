@@ -1,0 +1,111 @@
+\documentclass[11pt,a4paper]{article}
+
+% For å kunne skrive norske tegn.
+\usepackage[utf8]{inputenc}
+
+\usepackage{minted}
+
+\usepackage{multirow}
+
+% For å inkludere figurer.
+\usepackage{graphicx}
+
+% Ekstra matematikkfunksjoner.
+\usepackage{amsmath,amssymb}
+
+%\usepackage[section]{placeins}
+
+% \usepackage{hyperref}
+% \hypersetup{%
+%   colorlinks=true, % hyperlinks will be black
+%   urlcolor=red,
+%   linkcolor=red
+% }
+
+% For å få tilgang til finere linjer (til bruk i tabeller og slikt).
+%\usepackage{booktabs}
+
+% For justering av figurtekst og tabelltekst.
+%\usepackage[font=small,labelfont=bf]{caption}
+
+% Subsections A, B,
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\alph{subsection})}
+
+% Disse kommandoene kan gjøre det enklere for LaTeX å plassere figurer og tabeller der du ønsker.
+\setcounter{totalnumber}{5}
+\renewcommand{\bottomfraction}{0.95}
+\renewcommand{\floatpagefraction}{0.35}
+
+\begin{document}
+
+% Rapportens tittel:
+\title{Assignment 2: Apriori Rule Generation \\ \large{TDT4300}}
+\author{Jonas Myrlund}
+
+% Her ber vi LaTeX om å lage tittelen (til nå har vi bare sagt hva den skal inneholde):
+\maketitle
+
+\section{Implementation}
+
+\subsection{BruteForce}
+
+The BruteForce approach generates every possible permutation of the exhaustive item set, then prunes every subset that is deemed infrequent. This leads to an intractable amount of computation, as well as memory usage.
+
+The candidate set generation works in the following fashion:
+
+\begin{enumerate}
+  \item Grab all item sets of length 1.
+  \item Add the full union of the previous level's candidate sets and the item sets of length 1.
+  \item Repeat step 2 for each successive level until no new candidate sets are added.
+\end{enumerate}
+
+Then the candidates are successively pruned.
+
+\subsection{FKMinus1F1Apriori}
+
+The FKMinus1F1Apriori approach is quite a bit better than BruteForce. For each level, it generates candidates from the previous level unioned with the most frequent level 1 item sets. Although it bases the new levels' candidate sets only on frequent components, it still has the weakness of generating quite a lot of infrequent candidate sets.
+
+\subsection{FkMinus1FKMinus1}
+
+It starts off with the $F_1$ candidates, and recursively joins the previous level onto itself for each candidate level, until no new frequent candidate sets can be found.
+
+\section{Performance}
+
+The various complexities of the algorithms are shown side-by-side in table~\ref{tbl:counts}.
+
+\begin{table}
+  \centering
+  \begin{tabular}{|l|l|l|}
+    \hline
+    Method                             & Small dataset & Large dataset \\ \hline
+    \multirow{2}{*}{BruteForce}        & 63 candidates & \multirow{2}{*}{N/A} \\
+                                       & 54 pruned     & \\ \hline
+    \multirow{2}{*}{FKMinus1F1Apriori} & 35 candidates & 3800 candidates \\
+                                       & 26 pruned     & 3768 pruned \\ \hline
+    \multirow{2}{*}{FkMinus1FKMinus1}  & 16 candidates & 305 candidates \\
+                                       & 7 pruned      & 273 pruned \\ \hline
+  \end{tabular}
+  \caption{Candidate generation count and prune count for each algorithm.}
+  \label{tbl:counts}
+\end{table}
+
+\subsection{BruteForce}
+
+For the small dataset of $k = 6$ elements, BruteForce generates the expected $M = 2^d \approx 63$ candidate sets, not including the empty set. It then prunes 54 candidates to come up with the final 9 frequent item sets used for rule generation.
+
+With a space-time complexity of $O(NMw)$, where $M = 2^d$, the space-time complexity renders the BruteForce method completely unusable on the large dataset.
+
+\subsection{FKMinus1F1Apriori}
+
+On the small dataset, FKMinus1F1Apriori generates 35 candidate sets and ends up pruning 26 of them to come up with the final 9 frequent item sets.
+
+\subsection{FkMinus1FKMinus1}
+
+The FkMinus1FKMinus1 approach is the clearly best performer.
+
+The FkMinus1FKMinus1 generates very few candidates compared to the FKMinus1F1Apriori, and runs noticably faster on both the small and large dataset.
+
+% section iccube (end)
+
+\end{document}
