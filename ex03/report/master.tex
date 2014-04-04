@@ -1,0 +1,290 @@
+\documentclass[11pt,a4paper]{article}
+
+% For å kunne skrive norske tegn.
+\usepackage[utf8]{inputenc}
+
+\usepackage{minted}
+
+\usepackage{multirow}
+
+% For å inkludere figurer.
+\usepackage{graphicx}
+
+% Ekstra matematikkfunksjoner.
+\usepackage{amsmath,amssymb}
+
+%\usepackage[section]{placeins}
+
+\usepackage{hyperref}
+\hypersetup{%
+  colorlinks=true, % hyperlinks will be black
+  urlcolor=black,
+  linkcolor=black
+}
+
+% For å få tilgang til finere linjer (til bruk i tabeller og slikt).
+%\usepackage{booktabs}
+
+% For justering av figurtekst og tabelltekst.
+%\usepackage[font=small,labelfont=bf]{caption}
+
+% Subsections A, B,
+\renewcommand{\thesection}{\arabic{section}}
+% \renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+
+% Disse kommandoene kan gjøre det enklere for LaTeX å plassere figurer og tabeller der du ønsker.
+\setcounter{totalnumber}{5}
+\renewcommand{\bottomfraction}{0.95}
+\renewcommand{\floatpagefraction}{0.35}
+
+\begin{document}
+
+% Rapportens tittel:
+\title{Assignment 2: Apriori Rule Generation \\ \large{TDT4300}}
+\author{Jonas Myrlund}
+
+% Her ber vi LaTeX om å lage tittelen (til nå har vi bare sagt hva den skal inneholde):
+\maketitle
+
+\section{Decision trees}
+
+\subsection{Compute the Gini index for the entire training set.}
+
+The distribution of classes in the entire training set is as follows:
+
+\begin{tabular}{|l|c|}
+                          \hline
+               & Count \\ \hline
+  Buy PC = Yes & 12    \\ \hline
+  Buy PC = No  & 8     \\ \hline
+\end{tabular}
+
+This results in the following Gini index:
+
+\begin{equation}
+  \text{Gini} = 1 - (12/20)^2 - (8/20)^2 = 0.48
+\end{equation}
+
+\subsection{Compute the Gini index for the UserID attribute.}
+
+Considering the UserID attribute categorical, the values are unique throughout the entire data set, and thus every value has only one outcome. The Gini index will therefore be 0.
+
+This, however, is useless -- if a new UserID is to be classified, the decision tree will not be able to select a class.
+
+Seeing as the number doesn't have a causal relationship to the class, the Gini index will converge to 0.5.
+
+\subsection{Compute the Gini index for the Age attribute.}
+
+\begin{table}[h!]
+  \begin{tabular}{|c|c|c||c|}
+                                                        \hline
+    Age          & Buy PC = Yes & Buy PC = No & Gini \\ \hline
+    young        & 4            & 3           & 0.49 \\ \hline
+    medium young & 5            & 1           & 0.28 \\ \hline
+    old          & 3            & 4           & 0.49 \\ \hline
+  \end{tabular}
+  \caption{Gini index for the Age attribute.}
+  \label{tab:age}
+\end{table}
+
+The results in table~\ref{tab:age} gives a weighted average Gini index of 0.43.
+
+\subsection{Compute the Gini index for Student attribute.}
+
+\begin{table}[h!]
+  \begin{tabular}{|c|c|c||c|}
+                                                   \hline
+    Student & Buy PC = Yes & Buy PC = No & Gini \\ \hline
+    yes     & 8            & 2           & 0.32 \\ \hline
+    no      & 4            & 6           & 0.48 \\ \hline
+  \end{tabular}
+  \caption{Gini index for the Student attribute.}
+  \label{tab:student}
+\end{table}
+
+The results in table~\ref{tab:student} gives a weighted average Gini index of 0.40.
+
+\subsection{Compute the Gini index for Creditworthiness attribute.}
+
+\begin{table}[h!]
+  \begin{tabular}{|c|c|c||c|}
+                                                            \hline
+    Creditworthiness & Buy PC = Yes & Buy PC = No & Gini \\ \hline
+    high             & 6            & 4           & 0.48 \\ \hline
+    pass             & 6            & 4           & 0.48 \\ \hline
+  \end{tabular}
+  \caption{Gini index for the Creditworthiness attribute.}
+  \label{tab:credit}
+\end{table}
+
+The results in table~\ref{tab:credit} gives a weighted average Gini index of 0.48.
+
+\subsection{Which attribute is the best?}
+
+The Student attribute has the lowest Gini index, and can be considered the best.
+
+\section{Classification} % (fold)
+\label{sec:classification}
+
+\setcounter{subsection}{1}
+
+\subsection{Datasets}
+
+\subsubsection*{Iris}
+
+The Iris dataset contains data for classification of different iris plants.
+
+It consists of 150 instances, and 5 variables -- all real:
+
+\begin{enumerate}
+  \item Sepal length in cm
+  \item Sepal width in cm
+  \item Petal length in cm
+  \item Petal width in cm
+  \item Class
+\end{enumerate}
+
+The class variable takes on 3 values, evenly distributed with 50 samples each.
+
+\subsubsection*{Diabetes}
+
+The diabetes dataset contains patient data, and classifies them as having tested either positively or negatively for diabetes.
+
+It consists of 768 instances, and has 9 attributes -- all real:
+
+\begin{enumerate}
+  \item Number of times pregnant
+  \item Plasma glucose concentration a 2 hours in an oral glucose tolerance test
+  \item Diastolic blood pressure
+  \item Triceps skin fold thickness
+  \item 2-Hour serum insulin
+  \item Body mass index
+  \item Diabetes pedigree function
+  \item Age
+  \item Class
+\end{enumerate}
+
+The class takes on either \emph{positive} or \emph{negative}.
+
+\subsubsection*{Spambase}
+
+The Spambase dataset consists of 4601 documents, in the form of various metadata.
+
+It has 58 distinct attributes, but many of them measure similar things. The 6 ``attribute categories'' are distributed as follows:
+
+\begin{enumerate}
+  \item 48 continuous real $[0,100]$ attributes of type word\_freq\_WORD (percentage of words in the e-mail that match WORD)
+  \item 6 continuous real $[0,100]$ attributes of type char\_freq\_CHAR (percentage of characters in the e-mail that match CHAR)
+  \item 1 continuous real $[1,...]$ attribute of type capital\_run\_length\_average (average length of uninterrupted sequences of capital letters)
+  \item 1 continuous integer $[1,...]$ attribute of type capital\_run\_length\_longest (length of longest uninterrupted sequence of capital letters)
+  \item 1 continuous integer $[1,...]$ attribute of type capital\_run\_length\_total (sum of length of uninterrupted sequences of capital letters)
+  \item 1 nominal ${0,1}$ class attribute of type spam
+\end{enumerate}
+
+% section classification (end)
+
+\subsection{Classification} % (fold)
+\label{sub:classification}
+
+\subsubsection*{J48}
+
+An open source implementation of the proprietary C4.5 algorithm. It has the following important parameters:
+
+\begin{description}
+  \item[binarySplits] Whether to use binary splits on nominal attributes when building the tree.
+  \item[confidenceFactor] The smaller the value, the more pruning is done.
+\end{description}
+
+\begin{verbatim}
+  === Spambase Confusion Matrix ===
+     a   b   <-- classified as
+   896  51 |   a = 0
+    71 546 |   b = 1
+\end{verbatim}
+
+\begin{verbatim}
+  === Diabetes Confusion Matrix ===
+     a   b   <-- classified as
+   152  26 |   a = tested_negative
+    36  47 |   b = tested_positive
+\end{verbatim}
+
+\begin{verbatim}
+  === IRIS Confusion Matrix ===
+    a  b  c   <-- classified as
+   15  0  0 |  a = Iris-setosa
+    0 19  0 |  b = Iris-versicolor
+    0  2 15 |  c = Iris-virginica
+\end{verbatim}
+
+\subsubsection*{kNN}
+
+Bases classification on the class of the k nearest neighbors in a Euclidian space.
+
+The k parameter is the big one, specifying how many neighbors to consider upon classification. Results go from 85\% to 89\% on the spambase dataset when upping k from 1 to 3. However, higher values than 5 yield slightly poorer performance.
+
+\begin{verbatim}
+  === Spambase Confusion Matrix ===
+     a   b   <-- classified as
+   874  73 |   a = 0
+    91 526 |   b = 1
+\end{verbatim}
+
+\begin{verbatim}
+  === Diabetes Confusion Matrix ===
+     a   b   <-- classified as
+   148  30 |   a = tested_negative
+    36  47 |   b = tested_positive
+\end{verbatim}
+
+\begin{verbatim}
+  === IRIS Confusion Matrix ===
+    a  b  c   <-- classified as
+   15  0  0 |  a = Iris-setosa
+    0 19  0 |  b = Iris-versicolor
+    0  2 15 |  c = Iris-virginica
+\end{verbatim}
+
+\subsubsection*{SMO}
+
+The most important parameter in SVMs are arguably the kernel, allowing for different kinds of boundaries to be used to divide the data vectors into classes. The Puk kernel works best out of the ones I tried, achieving an accuracy of 93.7\%.
+
+\begin{verbatim}
+  === Spambase Confusion Matrix ===
+     a   b   <-- classified as
+   912  35 |   a = 0
+    63 554 |   b = 1
+\end{verbatim}
+
+\begin{verbatim}
+  === Diabetes Confusion Matrix ===
+     a   b   <-- classified as
+   161  17 |   a = tested_negative
+    37  46 |   b = tested_positive
+\end{verbatim}
+
+\begin{verbatim}
+  === IRIS Confusion Matrix ===
+    a  b  c   <-- classified as
+   15  0  0 |  a = Iris-setosa
+    0 19  0 |  b = Iris-versicolor
+    0  2 15 |  c = Iris-virginica
+\end{verbatim}
+
+\subsection{Evaluation}
+
+Cross-validation is better than percentage split in many different cases.
+
+While percentage split simply splits the dataset into a training set and a test set, cross-validation does this k times. In this way, the entire dataset is used as both training and testing, and the final benchmark is the average performance.
+
+This is a better approach if the values in the dataset is not evenly/randomly distributed, for instance when it is ordered. In a percentage split on an ordered dataset, the algorithms would train for conditions not matched in the test set.
+
+\subsection{Best classifiers}
+
+For the Spambase, the SMO with the Puk kernel performs best with 93.7\% correctly classified instances. J48 trails right behind with just above 92\%, while kNN gets 89\% with $k = 3$. On the other two datasets, the results are a bit worse, and more even.
+
+Of the other classifiers, BayesNet -- Bayesian networks -- reports quite good results on most of the datasets.
+
+% subsection classification (end)
+
+\end{document}
