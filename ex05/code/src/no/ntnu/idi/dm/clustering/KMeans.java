@@ -162,6 +162,24 @@ public class KMeans {
 
 	private int lastNumberOfUpdates = Integer.MAX_VALUE;
 
+    private boolean addInstanceToCluster(int clusterIndex, int instanceIndex) {
+        Integer _currentClusterIndex = instancesInClusters.get(new Integer(instanceIndex));
+        int currentClusterIndex = _currentClusterIndex != null ? _currentClusterIndex.intValue() : -1;
+
+        if (currentClusterIndex < 0 || currentClusterIndex != clusterIndex) {
+            if (currentClusterIndex >= 0) {
+                clusters[currentClusterIndex].removeInstanceIndex(instanceIndex);
+            }
+            clusters[clusterIndex].addIndex(instanceIndex);
+
+            instancesInClusters.put(new Integer(instanceIndex), new Integer(clusterIndex));
+
+            return true;
+        }
+
+        return false;
+    }
+
 	/**
 	 * A classic training step in the K-Means world.
 	 * 
@@ -173,21 +191,7 @@ public class KMeans {
 
         for (int i = 0; i < this.numberOfInstances; i++) {
             int newClusterIndex = this.getIndexOfClosestCluster(this.getData()[i]);
-            int oldClusterIndex;
-
-            if (instancesInClusters.size() == 0) {
-                clusters[newClusterIndex].addIndex(i);
-                changesDetected = true;
-                continue;
-            }
-
-            oldClusterIndex = this.instancesInClusters.get(new Integer(i));
-
-            if (oldClusterIndex != newClusterIndex) {
-                clusters[newClusterIndex].addIndex(i);
-                clusters[oldClusterIndex].removeInstanceIndex(i);
-                changesDetected = true;
-            }
+            changesDetected = addInstanceToCluster(newClusterIndex, i) || changesDetected;
         }
 
         calculateNewCentroids();
@@ -325,13 +329,31 @@ public class KMeans {
 		return sse;
 	}
 
+    private double[] getAverageCentroid() {
+        double[] avgCentroid = new double[numberOfAttributes];
+        for (int i = 0; i < k; i++) {
+            double[] centroid = clusters[i].getCentroid();
+            for (int d = 0; d < numberOfAttributes; d++) {
+                avgCentroid[d] += centroid[d] * clusters[i].getNumberOfInstances();
+            }
+        }
+        for (int d = 0; d < numberOfAttributes; d++) {
+            avgCentroid[d] /= numberOfInstances;
+        }
+        return avgCentroid;
+    }
+
 	/**
 	 * 
 	 * @return SSB.
 	 */
 	public double getSSB() {
-		double ssb=0;
-		//TODO
+		double[] m = getAverageCentroid();
+
+        double ssb = 0;
+        for (int i = 0; i < k; i++) {
+            ssb += clusters[i].SSB(m);
+        }
 		return ssb;
 	}
 
@@ -382,6 +404,7 @@ public class KMeans {
 
 	public double getAverageSilhouetteValue() {
 		double totalSilhouette = 0;
+        int n = 0;
 		for (int i = 0; i < k; i++) {
             Cluster cluster = clusters[i];
             for (Integer vectorIndex : cluster.getIndices()) {

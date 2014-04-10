@@ -155,9 +155,7 @@ public class Cluster {
 	 * @return
 	 */
 	public double SSB(double[] m) {
-		double ssb=0;
-		//TODO
-		return ssb;
+		return getNumberOfInstances() * Math.pow(distanceFunction.distance(centroid, m), 2);
 	}
 
 	/**
